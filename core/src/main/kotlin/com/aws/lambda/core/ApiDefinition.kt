@@ -128,7 +128,7 @@ data class Post(
         var id: String = UUID.randomUUID().toString(),
 
         @DynamoDBAttribute(attributeName = "created_at")
-        var createdAt: String? = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date()),
+        var createdAt: String? = SimpleDateFormat("yyyy-MM-ddTHH:mm:ss").format(Date()),
 
         @DynamoDBAttribute(attributeName = "title")
         var title: String? = null,
