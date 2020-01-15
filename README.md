@@ -20,6 +20,8 @@ An AWS serverless Kotlin project to save and retrieve 'Post' from DynamoDB
 <br>`export AWS_ACCESS_KEY_ID="<access_key>"`
 <br>`export AWS_SECRET_ACCESS_KEY="<secret_access_key>"`
 <br>`export AWS_REGION="<region>"`
+* Build and Deploy 
+<br>`mvn deploy`
 
 ### Git examples
 * https://github.com/cjkent/osiris/wiki/Getting-Started-with-Maven
