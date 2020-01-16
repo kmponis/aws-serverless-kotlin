@@ -11,7 +11,7 @@ An AWS serverless Kotlin project to save and retrieve 'Post' from DynamoDB
 
 ### Osiris plugin 
 * The project was created using the bellow command.
-<br>`$ mvn archetype:generate -DarchetypeGroupId=ws.osiris -DarchetypeArtifactId=osiris-archetype -DarchetypeVersion=1.3.0`
+<br>`$ mvn archetype:generate -DarchetypeGroupId=ws.osiris -DarchetypeArtifactId=osiris-archetype -DarchetypeVersion=1.4.0`
 * The bellow prerequisites were needed:
 <br>- JDK8, Maven and Git
 <br>- An AWS account.

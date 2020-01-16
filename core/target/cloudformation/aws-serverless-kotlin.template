@@ -1,0 +1,229 @@
+
+Parameters:
+
+  LambdaRole:
+    Type: String
+    Description: The ARN of the role assumed by the lambda when handling requests
+
+Resources:
+  Function:
+    Type: AWS::Lambda::Function
+    Properties:
+      
+      Handler: com.aws.lambda.core.generated.GeneratedLambda
+      Runtime: java8
+      MemorySize: 512
+      Timeout: 10
+      Layers: []
+      Environment:
+        Variables:
+          ENVIRONMENT_VARIABLE: "Bobaaa"
+      Code:
+        S3Bucket: aws-serverless-kotlin-code-709954733971
+        S3Key: aws-serverless-kotlin.d4954019f99f926c3011ef059a842723.jar
+      Role: !Ref LambdaRole
+
+  LambdaVersion:
+    Type: Custom::LambdaVersion
+    Properties:
+      ServiceToken: !GetAtt LambdaVersionFunction.Arn
+      FunctionName: !Ref Function
+      CodeHash: d4954019f99f926c3011ef059a842723
+
+  LambdaVersionFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: "index.handler"
+      Role: !GetAtt LambdaVersionExecutionRole.Arn
+      Code:
+        ZipFile: !Sub |
+          
+          var AWS = require('aws-sdk');
+          var response = require('cfn-response');
+          exports.handler = (event, context, callback) => {
+            if (event.RequestType == 'Delete') {
+              response.send(event, context, response.SUCCESS);
+            }
+            var lambda = new AWS.Lambda();
+            lambda.publishVersion({FunctionName: event.ResourceProperties.FunctionName}).promise().then((data) => {
+              var permissionsParams = {
+                  Action: "lambda:InvokeFunction",
+                  FunctionName: data.FunctionArn,
+                  Principal: "apigateway.amazonaws.com",
+                  SourceArn: "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*",
+                  StatementId: "3d740552-48c9-4129-b8ff-1398f064da64"
+              }
+              lambda.addPermission(permissionsParams).promise().then((resp) => {
+                return response.send(event, context, response.SUCCESS, {FunctionArn: data.FunctionArn}, data.FunctionArn);
+              }).catch((e) => {
+                return response.send(event, context, response.FAILED, e);
+              });
+            }).catch((e) => {
+              return response.send(event, context, response.FAILED, e);
+            });
+          };
+
+      Runtime: nodejs12.x
+
+  LambdaVersionExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal: {Service: [lambda.amazonaws.com]}
+          Action: ['sts:AssumeRole']
+      Path: /
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+      - PolicyName: PublishVersion
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action: ['lambda:PublishVersion', 'lambda:AddPermission']
+            Resource: '*'
+  Stagedev:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: dev
+      RestApiId: !Ref Api
+      Description: "Development stage"
+      DeploymentId: !Ref Deployment
+      Variables: 
+        "VAR1": "devValue1"
+  Api:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: "aws-serverless-kotlin"
+      Description: "Application 'aws-serverless-kotlin', created with Osiris"
+      FailOnWarnings: true
+      BinaryMediaTypes: []
+  Resource1d4e410da3ef3e4bGET:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !GetAtt Api.RootResourceId
+      RestApiId: !Ref Api
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaVersion.FunctionArn}/invocations
+  Resource86727935e10a6024:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !GetAtt Api.RootResourceId
+      PathPart: "insertPost"
+  Resource86727935e10a6024POST:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId: !Ref Resource86727935e10a6024
+      RestApiId: !Ref Api
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaVersion.FunctionArn}/invocations
+  Resource2d8ff34dde13fbb4:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !GetAtt Api.RootResourceId
+      PathPart: "getAllPosts"
+  Resource2d8ff34dde13fbb4GET:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref Resource2d8ff34dde13fbb4
+      RestApiId: !Ref Api
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaVersion.FunctionArn}/invocations
+  Resource62554969ba2a0131:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !GetAtt Api.RootResourceId
+      PathPart: "getPostById"
+  Resource62554969ba2a0131GET:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref Resource62554969ba2a0131
+      RestApiId: !Ref Api
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaVersion.FunctionArn}/invocations
+  Resource1dab0af724704b0b:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !GetAtt Api.RootResourceId
+      PathPart: "getPostByTitle"
+  Resource1dab0af724704b0bGET:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref Resource1dab0af724704b0b
+      RestApiId: !Ref Api
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaVersion.FunctionArn}/invocations
+  Resourcec34fac2d027f3725:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref Api
+      ParentId: !GetAtt Api.RootResourceId
+      PathPart: "getPostByUsername"
+  Resourcec34fac2d027f3725GET:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      ResourceId: !Ref Resourcec34fac2d027f3725
+      RestApiId: !Ref Api
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaVersion.FunctionArn}/invocations
+  Deployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - Resource1d4e410da3ef3e4bGET
+      - Resource86727935e10a6024POST
+      - Resource2d8ff34dde13fbb4GET
+      - Resource62554969ba2a0131GET
+      - Resource1dab0af724704b0bGET
+      - Resourcec34fac2d027f3725GET
+    Properties:
+      RestApiId: !Ref Api
+Outputs:
+  ApiId:
+    Description: ID of the API Gateway API
+    Value: !Ref Api
+  ApiRootResourceId:
+    Description: ID of the root resource API Gateway API
+    Value: !GetAtt Api.RootResourceId
+  LambdaArn:
+    Description: The lambda function
+    Value: !GetAtt Function.Arn
+  LambdaVersionArn:
+    Description: The lambda function version
+    Value: !GetAtt LambdaVersion.FunctionArn
+  CodeS3Bucket:
+    Description: The name of the bucket containing the code
+    Value: aws-serverless-kotlin-code-709954733971
+  CodeS3Key:
+    Description: The key used to store the jar file containing the code in the S3 bucket
+    Value: aws-serverless-kotlin.d4954019f99f926c3011ef059a842723.jar
